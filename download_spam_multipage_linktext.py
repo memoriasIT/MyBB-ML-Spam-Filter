@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 from urllib.error import HTTPError
 from urllib.error import URLError
 from urllib.request import urlopen
+from collections import OrderedDict
 import csv
 import itertools
 import os
@@ -27,6 +28,8 @@ def RetrieveData(urllist):
 
 
     # Parse Threads
+    postsnames = postsnames.strip()[:-1]
+
     regex = r"(<span class=\" subject_new\" id=\"tid_[0-9]+\"><a href=\"showthread.php\?tid=)|(</a></span>)|(\[)|(\])"
     result1 = re.sub(regex, "", postsnames , 0)
     result2 = re.sub("(\">)", ", ", result1, 0)
@@ -39,6 +42,11 @@ def PrintData(resulttolist,pages):
     #Print Data to terminal beautiful
     resultdict = {}
     resultdict = dict(itertools.zip_longest(*[iter(resulttolist)] * 2, fillvalue=""))
+
+    resultdict = OrderedDict(sorted((int(key), value) for key, value in resultdict.items()))
+ 
+    
+
 
     print("""
     _  _ ____ _ _ _      ___  ____ ___ ____ 
