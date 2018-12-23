@@ -3,7 +3,6 @@ from bs4 import BeautifulSoup
 from urllib.error import HTTPError
 from urllib.error import URLError
 from urllib.request import urlopen
-from collections import OrderedDict
 import csv
 import itertools
 import os
@@ -40,14 +39,12 @@ def RetrieveData(urllist):
 def PrintData(resulttolist,pages):
 
     #Print Data to terminal beautiful
-    resultdict = {}
-    resultdict = dict(itertools.zip_longest(*[iter(resulttolist)] * 2, fillvalue=""))
+    mydict = resulttolist[0::2]
+    for i in range(len(mydict)):
+        mydict[i] = int(mydict[i])
 
-    resultdict = OrderedDict(sorted((int(key), value) for key, value in resultdict.items()))
- 
+    resultlist = sorted(mydict)
     
-
-
     print("""
     _  _ ____ _ _ _      ___  ____ ___ ____ 
     |\ | |___ | | |      |  \ |__|  |  |__| 
@@ -59,11 +56,11 @@ def PrintData(resulttolist,pages):
     cdir = os.path.join(os.getcwd(), os.path.dirname(__file__))+"/data.csv"
     with open(cdir, 'w') as outfile: 
         w = csv.writer(outfile, delimiter='\n')        
-        w.writerows([resultdict])
+        w.writerows([resultlist])
 
     ans= input("\tDONE! Want to preview data saved? (y/n)")
     if (ans == "y"):
-        pp.pprint(resultdict)
+        pp.pprint(resulttolist)
     else:
         print("Cy@!")
 
