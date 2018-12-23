@@ -27,7 +27,7 @@ def RetrieveData(urllist):
 
 
     # Parse Threads
-    regex = r"(<span class=\" subject_new\" id=\"tid_[0-9]+\"><a href=\")|(</a></span>)|(\[)|(\])"
+    regex = r"(<span class=\" subject_new\" id=\"tid_[0-9]+\"><a href=\"showthread.php\?tid=)|(</a></span>)|(\[)|(\])"
     result1 = re.sub(regex, "", postsnames , 0)
     result2 = re.sub("(\">)", ", ", result1, 0)
     resulttolist = result2.split(",")
@@ -50,8 +50,14 @@ def PrintData(resulttolist,pages):
     # Data to CSV
     cdir = os.path.join(os.getcwd(), os.path.dirname(__file__))+"/data.csv"
     with open(cdir, 'w') as outfile: 
-        w = csv.writer(outfile, delimiter=',')        
-        w.writerows([resultdict]) 
+        w = csv.writer(outfile, delimiter='\n')        
+        w.writerows([resultdict])
+
+    ans= input("\tDONE! Want to preview data saved? (y/n)")
+    if (ans == "y"):
+        pp.pprint(resultdict)
+    else:
+        print("Cy@!")
 
 
 def main():
@@ -89,7 +95,7 @@ def main():
             ans = False
             print("\n\tWait, Batman is working on it...\n")
             
-            # Get data and print it
+            # Get data and print
             data = RetrieveData(urllist)
             PrintData(data, pages)
 
