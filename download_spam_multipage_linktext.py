@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 from urllib.error import HTTPError
 from urllib.error import URLError
 from urllib.request import urlopen
+from bintrees import AVLTree
 import csv
 import itertools
 import os
@@ -25,7 +26,6 @@ def RetrieveData(urllist):
             postsnames += str(raw)
             postsnames += ", "
 
-
     # Parse Threads
     postsnames = postsnames.strip()[:-1]
 
@@ -36,15 +36,35 @@ def RetrieveData(urllist):
 
     return resulttolist
 
+# Parse CSV
+def getCSVdata(cdir):
+    with open(cdir,"r") as file:
+        csvdata = file.read()
+        csvdata = csvdata.split("\n")
+
+        cleancsvdata = []
+        for value in csvdata:
+            try:
+                cleancsvdata.append(int(value))
+            except ValueError:
+                # Forgive me lord because I have sinned
+                pass 
+    return cleancsvdata
+
+# Print new data to CSV and screen
 def PrintData(resulttolist,pages):
-
-    #Print Data to terminal beautiful
-    mydict = resulttolist[0::2]
-    for i in range(len(mydict)):
-        mydict[i] = int(mydict[i])
-
-    resultlist = sorted(mydict)
+    # Data.csv directory
+    cdir = os.path.join(os.getcwd(), os.path.dirname(__file__))+"/data.csv"
+    cleancsvdata = getCSVdata(cdir)
+        
+    # Parsed data to sorted list
+    parseddata = resulttolist[0::2]
+    for i in range(len(parseddata)):
+        parseddata[i] = int(parseddata[i])
     
+    resultlist = sorted(cleancsvdata + list(set(parseddata) - set(cleancsvdata)))
+
+    # Show quantity of entities added
     print("""
     _  _ ____ _ _ _      ___  ____ ___ ____ 
     |\ | |___ | | |      |  \ |__|  |  |__| 
@@ -53,13 +73,20 @@ def PrintData(resulttolist,pages):
     """ % (len(resulttolist)/2, pages))
 
     # Data to CSV
-    cdir = os.path.join(os.getcwd(), os.path.dirname(__file__))+"/data.csv"
     with open(cdir, 'w') as outfile: 
-        w = csv.writer(outfile, delimiter='\n')        
-        w.writerows([resultlist])
+        w = csv.writer(outfile, delimiter='\n', lineterminator="\n")  
+        for elem in resultlist:
+            w.writerow([elem])
 
+    # Preview Data if wanted
     ans= input("\tDONE! Want to preview data saved? (y/n)")
     if (ans == "y"):
+        print("""
+         _  _  __     ___ __       _  _ ___ _ 
+        |_)|_)|_  \ /  | |_ | |   | \|_| | |_|
+        |  | \|__  V  _|_|__|^|   |_/| | | | |:
+        --------------------------------------
+        """)
         pp.pprint(resulttolist)
     else:
         print("Cy@!")
@@ -92,7 +119,7 @@ def main():
     while ans:
         print ("""
         1. D/L new data
-        2. Parse data in CSV
+        2. Get threads from data in CSV
         3. D/L and Parse
         """)
         ans= input("What would you like to do? ") 
@@ -109,6 +136,8 @@ def main():
             print("\n\tYou let chippy do all the work, huh?") 
 
             # Open CSV
+            cdir = os.path.join(os.getcwd(), os.path.dirname(__file__))+"/data.csv"
+            cleancsvdata = getCSVdata(cdir)
 
             # Data from CSV to parse
 
