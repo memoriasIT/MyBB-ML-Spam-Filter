@@ -61,7 +61,8 @@ def PrintData(resulttolist,pages):
     for i in range(len(parseddata)):
         parseddata[i] = int(parseddata[i])
     
-    resultlist = sorted(cleancsvdata + list(set(parseddata) - set(cleancsvdata)))
+    newthreads = list(set(parseddata) - set(cleancsvdata))
+    resultlist = sorted(cleancsvdata + newthreads)
 
     # Show quantity of entities added
     print("""
@@ -89,6 +90,8 @@ def PrintData(resulttolist,pages):
         pp.pprint(resulttolist)
     else:
         print("Cy@!")
+    
+    return newthreads
 
 def downloadThread(url):
     try:
@@ -134,14 +137,15 @@ def main():
     while ans:
         print ("""
         1. Check new threads
-        2. Get threads from data in CSV
-        3. Check and D/L threads
+        2. Get ALL threads from data in CSV
+        3. Check and D/L only new threads
         """)
         ans= input("What would you like to do? ") 
         if ans=="1": 
             ans = False
             print("\n\tWait, Batman is working on it...\n")
             
+            # SEARCH NEW THREADS AND SAVE TO CSV (doesn't download to files)
             # Get data and print
             data = RetrieveData(urllist)
             PrintData(data, pages)
@@ -150,6 +154,7 @@ def main():
             ans = False
             print("\n\tYou let chippy do all the work, huh?\n") 
 
+            # DOWNLOAD ALL THREADS TO FILES
             # Data from CSV to parse
             cdir = os.path.join(os.getcwd(), os.path.dirname(__file__))+"/data.csv"
             cleancsvdata = getCSVdata(cdir)
@@ -175,9 +180,21 @@ def main():
             
             # D/L new data
             data = RetrieveData(urllist)
-            PrintData(data, pages)
+            cleancsvdata = PrintData(data, pages)
 
-            # Parse data from urls
+            # Parse only new data from urls
+            lenght = len(cleancsvdata)
+            cont = 0
+            print(" STARTING PARSE TO FILES: ")
+            for thread in cleancsvdata:
+                url = urlroot+'showthread.php?tid='+str(thread)
+                content = downloadThread(url)
+                
+                print("("+str(cont)+"/"+str(lenght-1)+") - Threads completed")
+                cont +=1
+
+                with open(filedir+str(thread), 'w') as file:
+                    file.write(str(content))
 
         elif ans !="":
             print("\n Not Valid Choice Try again")
