@@ -3,7 +3,6 @@ from bs4 import BeautifulSoup
 from urllib.error import HTTPError
 from urllib.error import URLError
 from urllib.request import urlopen
-from bintrees import AVLTree
 import csv
 import itertools
 import os
@@ -70,7 +69,7 @@ def PrintData(resulttolist,pages):
     |\ | |___ | | |      |  \ |__|  |  |__| 
     | \| |___ |_|_|      |__/ |  |  |  |  |    
     %d NEW ITEMS FROM %s PAGES ADDED
-    """ % (len(resulttolist)/2, pages))
+    """ % (len(resultlist)-len(cleancsvdata), pages))
 
     # Data to CSV
     with open(cdir, 'w') as outfile: 
@@ -91,11 +90,27 @@ def PrintData(resulttolist,pages):
     else:
         print("Cy@!")
 
+def downloadThread(url):
+    try:
+        html = urlopen(url)
+    except HTTPError as e:
+        print("The server returned an HTTP error")
+    except URLError as e:
+        print("The server could not be found!")
+    else:
+        bs = BeautifulSoup(html, "html.parser")
+        raw = bs.find('div', {'class': 'post_body scaleimages'})
+
+    regex = r"(<br>)|(\[/url])|(\<span style=\"[a-zA-Z\-\:\;\ \"]+>)|([^a-zA-Z\d\s:])"
+    result = re.sub(regex, "", str(raw) , 0)
+    
+    return result
+
 
 def main():
     # Introduce parametres to scrape
-    urlroot ="https://greysec.net/forumdisplay.php?fid="
-    urlid = "11"
+    urlroot ="https://greysec.net/"
+    urlid = "forumdisplay.php?fid=11"
     pages = 2
     
     urllist = []
@@ -118,9 +133,9 @@ def main():
     ans=True
     while ans:
         print ("""
-        1. D/L new data
+        1. Check new threads
         2. Get threads from data in CSV
-        3. D/L and Parse
+        3. Check and D/L threads
         """)
         ans= input("What would you like to do? ") 
         if ans=="1": 
@@ -133,13 +148,26 @@ def main():
 
         elif ans=="2":
             ans = False
-            print("\n\tYou let chippy do all the work, huh?") 
+            print("\n\tYou let chippy do all the work, huh?\n") 
 
-            # Open CSV
+            # Data from CSV to parse
             cdir = os.path.join(os.getcwd(), os.path.dirname(__file__))+"/data.csv"
             cleancsvdata = getCSVdata(cdir)
 
-            # Data from CSV to parse
+            # for each element in cleancsvdata download (parsed) html to file
+            filedir = os.path.join(os.getcwd(), os.path.dirname(__file__))+"/data/"
+            lenght = len(cleancsvdata)
+            cont = 0
+            print(" STARTING PARSE TO FILES: ")
+            for thread in cleancsvdata:
+                url = urlroot+'showthread.php?tid='+str(thread)
+                content = downloadThread(url)
+                
+                print("("+str(cont)+"/"+str(lenght-1)+") - Threads completed")
+                cont +=1
+
+                with open(filedir+str(thread), 'w') as file:
+                    file.write(str(content))
 
         elif ans=="3":
             ans = False
